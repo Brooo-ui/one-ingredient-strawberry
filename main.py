@@ -1,7 +1,10 @@
-"""Procedural food-picture generator (stdlib only).
+"""One strawberry, drawn procedurally (stdlib only) for make.fun's
+"the-picture-that-tastes-of-one-20261122-2047" bounty.
 
-Five single-ingredient candidates, 1024x1024, written as PNG via zlib+struct.
-Shared rasterizer: per-pixel integer-hash grain, radial shading, gloss.
+A hand-built rasterizer (radial shading, gloss highlights, water droplets,
+seed pits, warm light) draws a single ripe strawberry, big in frame, and
+writes it as a 1024x1024 PNG to /output/entry.png. Deterministic: same
+bytes on every run. No network, no external images, no third-party packages.
 """
 import math, random, struct, zlib, os, sys
 
