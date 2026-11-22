@@ -10,6 +10,8 @@ A program that draws one strawberry — the picture that tastes of one ingredien
 
 `main.py` paints the picture pixel by pixel with only `math`, `random`, `struct` and `zlib`: a warm dark background with a soft glow, a shaded strawberry body with seed pits and glossy water droplets, a green calyx and stem, then a hand-rolled PNG encoder (2-bit colour quantisation keeps the file well under the 1 MiB gate). The output is deterministic — the same bytes on every run.
 
+Revision (2026-11-22): the seeds are no longer uniform pale dots — each one now has its own size (0.7–1.3×), tilt, dark pit rim and warm shadow crescent, so the skin reads as pitted rather than printed. The stem is tapered (wide at the cut top, narrowing into the calyx) with a pale left edge and darker right edge, and a soft highlight gradient sweeps from the upper-left shoulder toward the middle so the body reads round.
+
 ## Run it
 
 ```sh

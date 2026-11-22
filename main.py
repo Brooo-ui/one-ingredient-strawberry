@@ -194,19 +194,48 @@ def strawberry(c):
             base = mix(base, (255, 110, 80), light*0.35)
             n = (hash01(x, y, 5)-0.5)*22
             c.set(x, y, (base[0]+n, base[1]+n*0.6, base[2]+n*0.6))
-    # seeds: pale gold pits with shadow
-    for (t, ang) in seeds:
+    # seeds: varied pits — each seed has its own size, tilt and shading:
+    # a dark pit rim on the upper-left, a pale gold seed, and a warm
+    # shadow crescent tucked under the lower edge, so no two read alike.
+    for i, (t, ang) in enumerate(seeds):
         prof = math.sin(math.pi*(0.12+0.88*t))**0.62
         hw = rx*prof*(1.0+0.10*math.exp(-((t-0.10)/0.12)**2))
         sx = cx + math.sin(ang)*hw*0.92
         sy = y0 + t*(y1-y0)
-        # small ellipse pit
-        for dy in range(-7, 8):
-            for dx in range(-4, 5):
-                if (dx/4.5)**2 + (dy/7.5)**2 < 1:
-                    c.blend(int(sx+dx), int(sy+dy), (255, 226, 160), 0.9)
-                    if dy > 3:
-                        c.blend(int(sx+dx), int(sy+dy), (120, 40, 20), 0.35)
+        sc = 0.7 + 0.6*hash01(i, 3, 4)          # per-seed size 0.7..1.3
+        tilt = (hash01(i, 7, 4)-0.5)*0.9         # per-seed tilt, radians
+        ct, st = math.cos(tilt), math.sin(tilt)
+        prx, pry = 5.0*sc, 8.0*sc               # pit radii
+        for dy in range(-11, 12):
+            for dx in range(-8, 9):
+                # rotate into the seed's own tilted frame
+                rx0, ry0 = dx*ct - dy*st, dx*st + dy*ct
+                q = (rx0/prx)**2 + (ry0/pry)**2
+                if q < 1:
+                    # dark pit rim on the upper-left side of the hollow
+                    if rx0 < -prx*0.15 and ry0 < pry*0.25:
+                        c.blend(int(sx+dx), int(sy+dy), (96, 26, 16), 0.55*(1-q))
+                    # pale gold seed
+                    c.blend(int(sx+dx), int(sy+dy), (255, 226, 160), 0.9*(1-q*0.55))
+                    # warm shadow crescent under the lower edge
+                    if ry0 > pry*0.45:
+                        c.blend(int(sx+dx), int(sy+dy), (120, 40, 20), 0.4*(ry0/pry-0.45))
+    # soft highlight gradient: a broad warm wash sweeping from the
+    # upper-left shoulder down toward the middle, strongest near the
+    # shoulder and fading out, so the body reads round, not flat
+    for y in range(int(y0), int(y0+ (y1-y0)*0.62)+1):
+        t = (y-y0)/(y1-y0)
+        prof = math.sin(math.pi * (0.12 + 0.88*t)) ** 0.62
+        hw = rx * prof
+        hw *= 1.0 + 0.10*math.exp(-((t-0.10)/0.12)**2)
+        for x in range(int(cx-hw), int(cx+hw)+1):
+            u = (x-cx)/hw
+            if u*u > 1: continue
+            # diagonal falloff from the upper-left shoulder
+            g = max(0, 1 - math.hypot((x-400)/330, (y-300)/330))
+            a = 0.30 * g * g * max(0, 1 - t*1.6)
+            if a > 0.005:
+                c.blend(x, y, (255, 150, 110), a)
     # glossy highlight band top-left
     c.soft_disc(400, 330, 150, (255, 150, 120), 0.28)
     c.soft_disc(390, 320, 70, (255, 220, 200), 0.35)
@@ -219,11 +248,16 @@ def strawberry(c):
                     g = mix((46, 130, 52), (18, 70, 28), max(0, dy))
                     n = (hash01(x, y, 9)-0.5)*16
                     c.set(x, y, (g[0]+n, g[1]+n, g[2]+n))
-    # stem
+    # stem: tapered — wider at the cut top, narrowing into the calyx —
+    # with a pale highlight on its left edge and a darker right edge
     for y in range(60, 165):
-        wdt = 9 - (y-60)*0.02
+        tt = (y-60)/105
+        wdt = 11*(1-tt*0.55)
         for x in range(int(512-wdt), int(512+wdt)+1):
-            c.set(x, y, (52, 96, 44))
+            u = (x-512)/max(1, wdt)
+            g = mix((96, 152, 74), (30, 62, 28), max(0, u)*0.9)
+            g = mix(g, (52, 96, 44), 0.35)
+            c.set(x, y, g)
     # droplets
     for (dx, dy, dr) in [(620, 430, 16), (430, 560, 13), (560, 700, 18), (680, 580, 11), (380, 430, 10), (500, 830, 12)]:
         c.droplet(dx, dy, dr)
